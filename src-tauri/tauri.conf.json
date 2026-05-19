@@ -1,0 +1,42 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "MuseStudio",
+  "version": "0.1.0",
+  "identifier": "com.musestudio.windows",
+  "build": {
+    "beforeDevCommand": "pnpm dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "pnpm build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "MuseStudio",
+        "width": 1280,
+        "height": 800,
+        "minWidth": 800,
+        "minHeight": 500,
+        "decorations": true,
+        "transparent": false
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png",
+      "icons/icon.icns",
+      "icons/icon.ico"
+    ],
+    "category": "DeveloperTool",
+    "shortDescription": "Cross-platform code editor for LLMStudy lessons",
+    "longDescription": "MuseStudio is a lightweight code editor designed to pair with LLMStudy lessons. Runs natively on Windows, macOS, and Linux."
+  }
+}

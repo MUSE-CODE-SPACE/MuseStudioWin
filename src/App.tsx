@@ -1,0 +1,200 @@
+import { useEffect, useState } from "react";
+import { invoke } from "@tauri-apps/api/core";
+import { open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialog";
+import { Sidebar } from "./components/Sidebar";
+import { EditorPane } from "./components/EditorPane";
+import { StatusBar } from "./components/StatusBar";
+import { TabBar } from "./components/TabBar";
+import type { Tab } from "./types";
+import "./App.css";
+
+function languageFromPath(path: string): string {
+  const ext = path.split(".").pop()?.toLowerCase() ?? "";
+  return (
+    {
+      js: "javascript",
+      jsx: "javascript",
+      ts: "typescript",
+      tsx: "typescript",
+      py: "python",
+      rb: "ruby",
+      go: "go",
+      rs: "rust",
+      sh: "shell",
+      bash: "shell",
+      md: "markdown",
+      json: "json",
+      yaml: "yaml",
+      yml: "yaml",
+      toml: "toml",
+      html: "html",
+      css: "css",
+      swift: "swift",
+      java: "java",
+      kt: "kotlin",
+      c: "c",
+      cpp: "cpp",
+      h: "c",
+      hpp: "cpp",
+      sql: "sql",
+      xml: "xml",
+    }[ext] ?? "plaintext"
+  );
+}
+
+export default function App() {
+  const [rootDir, setRootDir] = useState<string | null>(null);
+  const [tabs, setTabs] = useState<Tab[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const activeTab = tabs.find((t) => t.id === activeId) ?? null;
+
+  async function openFolder() {
+    const picked = await openDialog({ directory: true });
+    if (typeof picked === "string") setRootDir(picked);
+  }
+
+  async function openFileFromDialog() {
+    const picked = await openDialog({ directory: false, multiple: false });
+    if (typeof picked === "string") await openPath(picked);
+  }
+
+  async function openPath(path: string) {
+    const existing = tabs.find((t) => t.path === path);
+    if (existing) {
+      setActiveId(existing.id);
+      return;
+    }
+    try {
+      const content = await invoke<string>("read_file", { path });
+      const id = `${path}#${Date.now()}`;
+      const tab: Tab = {
+        id,
+        path,
+        name: path.split("/").pop() ?? path,
+        language: languageFromPath(path),
+        content,
+        dirty: false,
+      };
+      setTabs((prev) => [...prev, tab]);
+      setActiveId(id);
+    } catch (e) {
+      console.error(e);
+      alert(`Failed to open: ${e}`);
+    }
+  }
+
+  function updateActiveContent(next: string) {
+    if (!activeTab) return;
+    setTabs((prev) =>
+      prev.map((t) =>
+        t.id === activeTab.id ? { ...t, content: next, dirty: true } : t,
+      ),
+    );
+  }
+
+  async function saveActive() {
+    if (!activeTab) return;
+    try {
+      await invoke("write_file", {
+        path: activeTab.path,
+        contents: activeTab.content,
+      });
+      setTabs((prev) =>
+        prev.map((t) => (t.id === activeTab.id ? { ...t, dirty: false } : t)),
+      );
+    } catch (e) {
+      console.error(e);
+      alert(`Save failed: ${e}`);
+    }
+  }
+
+  async function saveActiveAs() {
+    if (!activeTab) return;
+    const picked = await saveDialog({ defaultPath: activeTab.path });
+    if (!picked || typeof picked !== "string") return;
+    try {
+      await invoke("write_file", { path: picked, contents: activeTab.content });
+      setTabs((prev) =>
+        prev.map((t) =>
+          t.id === activeTab.id
+            ? {
+                ...t,
+                path: picked,
+                name: picked.split("/").pop() ?? picked,
+                language: languageFromPath(picked),
+                dirty: false,
+              }
+            : t,
+        ),
+      );
+    } catch (e) {
+      console.error(e);
+      alert(`Save As failed: ${e}`);
+    }
+  }
+
+  function closeTab(id: string) {
+    const tab = tabs.find((t) => t.id === id);
+    if (!tab) return;
+    if (tab.dirty && !confirm(`'${tab.name}' has unsaved changes. Close anyway?`)) {
+      return;
+    }
+    const next = tabs.filter((t) => t.id !== id);
+    setTabs(next);
+    if (activeId === id) setActiveId(next[next.length - 1]?.id ?? null);
+  }
+
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod) return;
+      if (e.key === "s" && !e.shiftKey) {
+        e.preventDefault();
+        saveActive();
+      } else if (e.key === "s" && e.shiftKey) {
+        e.preventDefault();
+        saveActiveAs();
+      } else if (e.key === "o" && !e.shiftKey) {
+        e.preventDefault();
+        openFileFromDialog();
+      } else if (e.key === "o" && e.shiftKey) {
+        e.preventDefault();
+        openFolder();
+      } else if (e.key === "w") {
+        e.preventDefault();
+        if (activeId) closeTab(activeId);
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab, tabs, activeId]);
+
+  return (
+    <div className="flex flex-col h-full">
+      <div className="flex flex-1 overflow-hidden">
+        <Sidebar
+          rootDir={rootDir}
+          onOpenFolder={openFolder}
+          onOpenFile={openFileFromDialog}
+          onFileClick={openPath}
+        />
+        <div className="flex flex-col flex-1 min-w-0">
+          <TabBar
+            tabs={tabs}
+            activeId={activeId}
+            onSelect={setActiveId}
+            onClose={closeTab}
+          />
+          <EditorPane
+            tab={activeTab}
+            onChange={updateActiveContent}
+            onSave={saveActive}
+          />
+        </div>
+      </div>
+      <StatusBar tab={activeTab} />
+    </div>
+  );
+}
