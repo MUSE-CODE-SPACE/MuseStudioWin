@@ -71,24 +71,49 @@ jobs:
           tagName: ${{ steps.tag.outputs.tag }}
           releaseName: "MuseStudio ${{ steps.tag.outputs.tag }}"
           releaseBody: |
-            ## 이 도구는 무엇인가
+            ## English
 
+            ### What is this tool?
+            **MuseStudio** is the companion IDE for [LLM Master (LLMStudy)](https://www.resonance-space.net/llmstudy.html) — open and run every Python · JavaScript · Swift · Go · Ruby · Shell code block from the lesson in a single click. Edit · run · check output, all in one app.
+
+            - Built for learners on the LLM Agent / AI Engineer track
+            - Goal: cut the 4-step friction ("lesson → new tab → copy code → set up env → run") down to zero
+            - No signup, no payment, no telemetry — runs locally only
+
+            ### Why Tauri 2.0 (vs Electron)
+            - Installer **2–5 MB** (vs Electron's ~150 MB) — reuses the system WebView2 / WebKit
+            - Rust backend — native-speed file / git / process management
+            - Single codebase produces Windows · macOS · Linux builds
+
+            ### Downloads
+            - **Windows**: `_x64-setup.exe` (NSIS) or `_x64_en-US.msi` (MSI)
+              - SmartScreen will warn on first run — click "More info" → "Run anyway" (code-signing cert not yet set up).
+            - **macOS Apple Silicon**: `_aarch64.dmg`
+              - Right-click → Open the first time to bypass Gatekeeper (notarization pending).
+
+            ---
+
+            ## 한국어
+
+            ### 이 도구는 무엇인가
             **MuseStudio** 는 [LLM Master (LLMStudy)](https://www.resonance-space.net/llmstudy.html) 의 동반 IDE입니다. 강의 본문에 박혀 있는 Python · JavaScript · Swift · Go · Ruby · Shell 코드 블록을 클릭 한 번에 열어, 그 자리에서 편집 · 실행 · 결과 확인까지 한 앱 안에서 할 수 있게 해줍니다.
 
             - LLM Agent / AI Engineer 트랙을 학습하는 사람을 위해 만들어졌습니다
             - "강의 → 새 탭 → 코드 옮기기 → 환경 만들기 → 실행" 4단계의 마찰을 0으로 줄이는 게 목적입니다
             - 별도 가입 · 결제 · 데이터 수집 없음. 로컬 실행만
 
-            ## Downloads
+            ### 왜 Tauri 2.0 (vs Electron)
+            - 설치본 **2~5 MB** (Electron 약 150 MB) — 시스템 WebView2 / WebKit 재사용
+            - Rust 백엔드 — 파일 / git / 프로세스 모두 네이티브 속도
+            - 단일 코드베이스로 Windows · macOS · Linux 동시 빌드
 
+            ### 다운로드
             - **Windows**: `_x64-setup.exe` (NSIS) 또는 `_x64_en-US.msi` (MSI)
               - 첫 실행 시 SmartScreen 경고 → "추가 정보" → "실행" 클릭 (코드 사이닝 추후)
             - **macOS Apple Silicon**: `_aarch64.dmg`
               - 첫 실행 시 우클릭 → "열기" 로 Gatekeeper 우회 (공증 추후)
 
-            ## English
-
-            Companion IDE for LLM Master. Open and run any code block from the lesson in one click. Tauri 2.0, no signup, no telemetry.
+            ---
 
             Built automatically from commit ${{ github.sha }}.
           releaseDraft: false
