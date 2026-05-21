@@ -1,6 +1,6 @@
 [package]
 name = "musestudio-win"
-version = "0.1.0"
+version = "0.2.0"
 description = "MuseStudio for Windows — Tauri-based code editor"
 authors = ["yoon-k"]
 edition = "2021"

@@ -5,8 +5,15 @@ import { Sidebar } from "./components/Sidebar";
 import { EditorPane } from "./components/EditorPane";
 import { StatusBar } from "./components/StatusBar";
 import { TabBar } from "./components/TabBar";
+import { RunOutputPanel } from "./components/RunOutputPanel";
 import type { Tab } from "./types";
 import "./App.css";
+
+/// run_code 가 인식하는 언어 셋. App.tsx 의 languageFromPath 결과를
+/// 그대로 쓸 수 있는 7개 — 다른 (markdown / json / html 등) 은 Run 버튼 비활성.
+const RUNNABLE_LANGS = new Set([
+  "python", "javascript", "typescript", "shell", "ruby", "go", "rust",
+]);
 
 function languageFromPath(path: string): string {
   const ext = path.split(".").pop()?.toLowerCase() ?? "";
@@ -46,6 +53,7 @@ export default function App() {
   const [rootDir, setRootDir] = useState<string | null>(null);
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [runPanelOpen, setRunPanelOpen] = useState(false);
 
   const activeTab = tabs.find((t) => t.id === activeId) ?? null;
 
@@ -164,6 +172,12 @@ export default function App() {
       } else if (e.key === "w") {
         e.preventDefault();
         if (activeId) closeTab(activeId);
+      } else if (e.key === "r" && !e.shiftKey) {
+        // Ctrl/⌘+R 로 Run 패널 열기 (이미 열려 있으면 토글). 실제 실행은 패널의 ▶ Run.
+        e.preventDefault();
+        if (activeTab && RUNNABLE_LANGS.has(activeTab.language)) {
+          setRunPanelOpen(true);
+        }
       }
     }
     window.addEventListener("keydown", onKey);
@@ -192,9 +206,19 @@ export default function App() {
             onChange={updateActiveContent}
             onSave={saveActive}
           />
+          <RunOutputPanel
+            path={activeTab?.path ?? null}
+            language={activeTab?.language ?? ""}
+            visible={runPanelOpen}
+            onClose={() => setRunPanelOpen(false)}
+          />
         </div>
       </div>
-      <StatusBar tab={activeTab} />
+      <StatusBar
+        tab={activeTab}
+        runnable={!!activeTab && RUNNABLE_LANGS.has(activeTab.language)}
+        onRun={() => setRunPanelOpen(true)}
+      />
     </div>
   );
 }
