@@ -71,10 +71,24 @@ jobs:
           tagName: ${{ steps.tag.outputs.tag }}
           releaseName: "MuseStudio ${{ steps.tag.outputs.tag }}"
           releaseBody: |
-            Cross-platform MuseStudio release.
+            ## 이 도구는 무엇인가
 
-            - Windows: download the `_x64-setup.exe` (NSIS) or `_x64_en-US.msi` (WiX). SmartScreen will warn on first run — click "More info" → "Run anyway" (code-signing cert not yet set up).
-            - macOS Apple Silicon: download the `_aarch64.dmg`. Right-click → Open the first time to bypass Gatekeeper (notarization pending).
+            **MuseStudio** 는 [LLM Master (LLMStudy)](https://www.resonance-space.net/llmstudy.html) 의 동반 IDE입니다. 강의 본문에 박혀 있는 Python · JavaScript · Swift · Go · Ruby · Shell 코드 블록을 클릭 한 번에 열어, 그 자리에서 편집 · 실행 · 결과 확인까지 한 앱 안에서 할 수 있게 해줍니다.
+
+            - LLM Agent / AI Engineer 트랙을 학습하는 사람을 위해 만들어졌습니다
+            - "강의 → 새 탭 → 코드 옮기기 → 환경 만들기 → 실행" 4단계의 마찰을 0으로 줄이는 게 목적입니다
+            - 별도 가입 · 결제 · 데이터 수집 없음. 로컬 실행만
+
+            ## Downloads
+
+            - **Windows**: `_x64-setup.exe` (NSIS) 또는 `_x64_en-US.msi` (MSI)
+              - 첫 실행 시 SmartScreen 경고 → "추가 정보" → "실행" 클릭 (코드 사이닝 추후)
+            - **macOS Apple Silicon**: `_aarch64.dmg`
+              - 첫 실행 시 우클릭 → "열기" 로 Gatekeeper 우회 (공증 추후)
+
+            ## English
+
+            Companion IDE for LLM Master. Open and run any code block from the lesson in one click. Tauri 2.0, no signup, no telemetry.
 
             Built automatically from commit ${{ github.sha }}.
           releaseDraft: false

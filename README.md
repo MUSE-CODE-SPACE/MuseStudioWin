@@ -1,5 +1,15 @@
 # MuseStudio (Windows / cross-platform)
 
+## 이 도구의 목적
+
+**MuseStudio** 는 [LLM Master (LLMStudy)](https://www.resonance-space.net/llmstudy.html) 의 동반 IDE 입니다. 강의 본문 안에 박혀 있는 코드 블록을 클릭 한 번에 열어, 그 자리에서 편집 · 실행 · 결과 확인까지 한 앱에서 할 수 있게 해주는 게 목적입니다.
+
+LLM Agent / AI 엔지니어를 학습하는 사람이 매번 "강의 → 새 탭 → 코드 옮기기 → 환경 만들기 → 실행" 4단계를 거치는 마찰을 0으로 줄이고 싶었습니다. 별도 가입 · 결제 · 데이터 수집 없이, 로컬에서만 동작합니다.
+
+Mac 사용자는 풀 기능 네이티브 빌드 ([MuseEdit](https://www.resonance-space.net/llmstudy.html#musestudio)) 를 권장합니다. 이 repo 의 Tauri 빌드는 **Windows 사용자를 위한 cross-platform 포트**가 1차 목적이고, Mac/Linux 도 같은 코드에서 같이 빌드됩니다.
+
+## Stack
+
 A Tauri 2.0 + React + Monaco port of MuseStudio Mac (`/Users/gongyoonkyoung/Projects/MuseEdit`).
 
 Produces native `.exe` / `.app` / `.deb` / `.AppImage` from a single codebase.
