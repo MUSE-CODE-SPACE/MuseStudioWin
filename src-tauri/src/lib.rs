@@ -132,6 +132,9 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(tauri_plugin_shell::init())
+        // museedit:// deeplink — installer 가 OS-level scheme 등록을 처리하고
+        // 런타임에 들어오는 URL 은 onOpenUrl 이벤트로 JS 에 전달된다.
+        .plugin(tauri_plugin_deep_link::init())
         .invoke_handler(tauri::generate_handler![
             read_file,
             write_file,

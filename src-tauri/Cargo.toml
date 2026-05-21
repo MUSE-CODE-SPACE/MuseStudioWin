@@ -1,6 +1,6 @@
 [package]
 name = "musestudio-win"
-version = "0.2.0"
+version = "0.3.0"
 description = "MuseStudio for Windows — Tauri-based code editor"
 authors = ["yoon-k"]
 edition = "2021"
@@ -18,6 +18,10 @@ tauri-plugin-opener = "2"
 tauri-plugin-dialog = "2"
 tauri-plugin-fs = "2"
 tauri-plugin-shell = "2"
+# museedit:// URL scheme 처리. installer (msi/nsis) 가 자동으로 Windows
+# registry · macOS Info.plist 등록을 처리. lib.rs 의 plugin init + tauri.conf
+# 의 deep-link.desktop.schemes 와 함께 동작.
+tauri-plugin-deep-link = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 walkdir = "2"

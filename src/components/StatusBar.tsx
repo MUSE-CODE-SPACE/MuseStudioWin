@@ -38,7 +38,7 @@ export function StatusBar({ tab, runnable, onRun }: Props) {
         </button>
       )}
       <span className="ml-auto">UTF-8</span>
-      <span>MuseStudio v0.2</span>
+      <span>MuseStudio v0.3</span>
     </footer>
   );
 }
