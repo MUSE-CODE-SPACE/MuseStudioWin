@@ -10,7 +10,7 @@ Mac 사용자는 풀 기능 네이티브 빌드 ([MuseEdit](https://www.resonanc
 
 ## Stack
 
-A Tauri 2.0 + React + Monaco port of MuseStudio Mac (`/Users/gongyoonkyoung/Projects/MuseEdit`).
+A Tauri 2.0 + React + Monaco port of **MuseEdit** (the macOS-native sibling).
 
 Produces native `.exe` / `.app` / `.deb` / `.AppImage` from a single codebase.
 
@@ -25,7 +25,7 @@ Produces native `.exe` / `.app` / `.deb` / `.AppImage` from a single codebase.
 
 ## What is NOT in v0.1 (vs Mac parity)
 
-See `/Users/gongyoonkyoung/Projects/MuseEdit` for the full feature list. Deferred:
+See the MuseEdit macOS-native sibling for the full feature list. Deferred:
 - Git integration (clone/status/commit/diff/branches)
 - Integrated terminal
 - Code execution (`run_code` Rust command stub exists)
@@ -38,7 +38,7 @@ See `/Users/gongyoonkyoung/Projects/MuseEdit` for the full feature list. Deferre
 ## Develop on Mac
 
 ```bash
-cd /Users/gongyoonkyoung/Projects/MuseStudioWin
+cd /path/to/MuseStudioWin
 pnpm install
 pnpm tauri dev          # spawn dev window
 pnpm tauri build        # produce .app (Mac) — outputs in src-tauri/target/release/bundle/
