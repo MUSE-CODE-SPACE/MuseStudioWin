@@ -25,3 +25,10 @@ tauri-plugin-deep-link = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 walkdir = "2"
+# musestudio://import — 챕터 코드 번들 zip 다운로드 + 압축 해제
+ureq = "2"
+zip = { version = "2", default-features = false, features = ["deflate"] }
+
+# deeplink 가 새 인스턴스를 띄우지 않고 기존 창으로 전달되도록 (Windows/Linux 필수)
+[target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
+tauri-plugin-single-instance = { version = "2", features = ["deep-link"] }

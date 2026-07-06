@@ -15,6 +15,9 @@ export type MuseEditDeepLink = {
   code: string;
   /// run=1 또는 run=true 이면 import 직후 자동 실행
   autoRun: boolean;
+  /// newfile=1 — 코드가 3.5KB 초과라 deeplink 에 못 실은 경우. LLMStudy 가
+  /// 전체 코드를 클립보드에 복사해 두었으므로 빈 새 파일만 열어주면 된다.
+  newFile: boolean;
   /// Learning Mode 메타 — 없으면 undefined (그냥 코드 snippet 으로 열기)
   lesson?: LessonInfo;
 };
@@ -58,13 +61,19 @@ export function parseMuseEditUrl(raw: string): MuseEditDeepLink | null {
     if (url.host !== "open") return null;
   }
   const params = url.searchParams;
+  const newFileParam = params.get("newfile");
+  const newFile = newFileParam === "1" || newFileParam === "true";
   const codeParam = params.get("code");
-  if (!codeParam) return null;
-  let code: string;
-  try {
-    code = decodeUrlSafeBase64(codeParam);
-  } catch {
-    return null;
+  // code 없이도 newfile=1 이면 유효 — LLMStudy 의 oversize 코드 흐름
+  // (클립보드 복사 + 빈 새 파일 열기).
+  if (!codeParam && !newFile) return null;
+  let code = "";
+  if (codeParam) {
+    try {
+      code = decodeUrlSafeBase64(codeParam);
+    } catch {
+      return null;
+    }
   }
   const ext = (params.get("lang") || "").toLowerCase();
   const language = EXT_TO_LANGUAGE[ext] || "plaintext";
@@ -91,5 +100,32 @@ export function parseMuseEditUrl(raw: string): MuseEditDeepLink | null {
     };
   }
 
-  return { ext, language, code, autoRun, lesson };
+  return { ext, language, code, autoRun, newFile, lesson };
+}
+
+/// musestudio://import?url=<zip-url>&name=<title>&slug=<chapter> 파싱.
+/// LLMStudy 의 ChapterCodeBundleCard.tsx 가 만드는 contract 와 동일 —
+/// 챕터 코드 번들 zip 을 다운로드해 폴더로 여는 흐름.
+export type MuseStudioImport = {
+  url: string;
+  name?: string;
+  slug?: string;
+};
+
+export function parseMuseStudioImportUrl(raw: string): MuseStudioImport | null {
+  if (!raw.startsWith("musestudio://")) return null;
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    return null;
+  }
+  if (url.host !== "import" && url.pathname !== "//import") return null;
+  const zipUrl = url.searchParams.get("url");
+  if (!zipUrl || !/^https?:\/\//i.test(zipUrl)) return null;
+  return {
+    url: zipUrl,
+    name: url.searchParams.get("name") ?? undefined,
+    slug: url.searchParams.get("slug") ?? undefined,
+  };
 }

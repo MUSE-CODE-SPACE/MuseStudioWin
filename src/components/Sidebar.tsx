@@ -33,7 +33,9 @@ export function Sidebar({ rootDir, onOpenFolder, onOpenFile, onFileClick }: Prop
       </div>
       <div className="flex-1 overflow-y-auto">
         {rootDir ? (
-          <FolderNode path={rootDir} depth={0} onFileClick={onFileClick} initiallyOpen />
+          // key=rootDir — 루트 폴더가 바뀔 때 (Open Folder / 번들 import) 서브트리를
+          // 리마운트해 이전 폴더의 캐시된 entries 가 그대로 남던 문제 방지.
+          <FolderNode key={rootDir} path={rootDir} depth={0} onFileClick={onFileClick} initiallyOpen />
         ) : (
           <p className="px-3 py-4 text-xs text-muted">
             No folder open. Click <b>Folder</b> above to start.

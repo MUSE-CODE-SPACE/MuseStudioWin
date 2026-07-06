@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open as openDialog, save as saveDialog } from "@tauri-apps/plugin-dialog";
 import { onOpenUrl, getCurrent as getCurrentDeepLink } from "@tauri-apps/plugin-deep-link";
@@ -8,7 +8,7 @@ import { StatusBar } from "./components/StatusBar";
 import { TabBar } from "./components/TabBar";
 import { RunOutputPanel } from "./components/RunOutputPanel";
 import { LearningModePanel } from "./components/LearningModePanel";
-import { parseMuseEditUrl } from "./lib/museeditUrl";
+import { parseMuseEditUrl, parseMuseStudioImportUrl, type MuseStudioImport } from "./lib/museeditUrl";
 import type { Tab } from "./types";
 import "./App.css";
 
@@ -60,6 +60,12 @@ export default function App() {
 
   const activeTab = tabs.find((t) => t.id === activeId) ?? null;
 
+  // deeplink 리스너는 마운트 시 한 번만 등록되는데, 그 시점의 handleDeepLink 가
+  // 캡처한 `tabs` 는 영원히 초기값 ([]) — 같은 레슨을 두 번 열면 중복 탭이 생기고
+  // 기존 탭 갱신 분기가 절대 타지 않던 버그. ref 로 항상 최신 tabs 를 본다.
+  const tabsRef = useRef<Tab[]>(tabs);
+  tabsRef.current = tabs;
+
   async function openFolder() {
     const picked = await openDialog({ directory: true });
     if (typeof picked === "string") setRootDir(picked);
@@ -71,7 +77,7 @@ export default function App() {
   }
 
   async function openPath(path: string) {
-    const existing = tabs.find((t) => t.path === path);
+    const existing = tabsRef.current.find((t) => t.path === path);
     if (existing) {
       setActiveId(existing.id);
       return;
@@ -97,8 +103,9 @@ export default function App() {
 
   /// museedit://open?... deeplink 한 건을 처리. base64 decode → temp 파일 작성 →
   /// 새 탭 추가 + lesson 메타 첨부. run=1 이면 자동으로 Run 패널 띄움 (실제 실행은
-  /// 사용자 확인을 위해 한 번 더 클릭). 실패해도 silent (alert 단계만).
-  async function handleDeepLink(rawUrl: string) {
+  /// 사용자 확인을 위해 한 번 더 클릭). newfile=1 (oversize 코드, 클립보드 경유) 은
+  /// 빈 파일을 만들어 연다. 실패해도 silent (alert 단계만).
+  async function handleMuseEditLink(rawUrl: string) {
     const parsed = parseMuseEditUrl(rawUrl);
     if (!parsed) return;
     try {
@@ -107,11 +114,17 @@ export default function App() {
       const dir = await tempDir();
       // 슬러그 있으면 그 이름 사용, 아니면 timestamp.
       const baseName = parsed.lesson?.slug
-        ? `${parsed.lesson.slug.replace(/[^\w.-]+/g, "_")}.${parsed.ext}`
-        : `museedit_${Date.now()}.${parsed.ext}`;
+        ? `${parsed.lesson.slug.replace(/[^\w.-]+/g, "_")}.${parsed.ext || "txt"}`
+        : `museedit_${Date.now()}.${parsed.ext || "txt"}`;
       const path = await join(dir, "musestudio", baseName);
+      const existing = tabsRef.current.find((t) => t.path === path);
+      // newfile 흐름에서 같은 슬러그 탭이 이미 있으면 사용자가 붙여넣은 내용을
+      // 빈 문자열로 덮어쓰면 안 됨 — 활성화만 한다.
+      if (parsed.newFile && existing) {
+        setActiveId(existing.id);
+        return;
+      }
       await invoke("write_file", { path, contents: parsed.code });
-      const existing = tabs.find((t) => t.path === path);
       if (existing) {
         // 같은 파일 다시 열기 — content 갱신해 새 버전 코드 표시.
         setTabs((prev) =>
@@ -142,6 +155,31 @@ export default function App() {
     } catch (e) {
       console.error("deeplink handle failed:", e);
     }
+  }
+
+  /// musestudio://import?url=... — 챕터 코드 번들 zip 을 Rust 쪽에서 다운로드 +
+  /// 압축 해제한 뒤, 사이드바 루트를 번들 폴더로 바꾸고 README 를 첫 탭으로 연다.
+  async function handleImportLink(imp: MuseStudioImport) {
+    try {
+      const res = await invoke<{ root: string; readme: string | null }>(
+        "import_bundle",
+        { url: imp.url, name: imp.name ?? null, slug: imp.slug ?? null },
+      );
+      setRootDir(res.root);
+      if (res.readme) await openPath(res.readme);
+    } catch (e) {
+      console.error("bundle import failed:", e);
+      alert(`번들 가져오기 실패 / Bundle import failed:\n${e}`);
+    }
+  }
+
+  async function handleDeepLink(rawUrl: string) {
+    const imp = parseMuseStudioImportUrl(rawUrl);
+    if (imp) {
+      await handleImportLink(imp);
+      return;
+    }
+    await handleMuseEditLink(rawUrl);
   }
 
   function updateActiveContent(next: string) {
@@ -287,6 +325,7 @@ export default function App() {
                 language={activeTab?.language ?? ""}
                 visible={runPanelOpen}
                 onClose={() => setRunPanelOpen(false)}
+                onBeforeRun={saveActive}
               />
             </div>
             {/* Learning Mode 사이드 패널 — 현재 탭이 museedit:// 로 들어온 경우에만. */}

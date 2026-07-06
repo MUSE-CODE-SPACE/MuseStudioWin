@@ -28,7 +28,7 @@
   "plugins": {
     "deep-link": {
       "desktop": {
-        "schemes": ["museedit"]
+        "schemes": ["museedit", "musestudio"]
       }
     }
   },

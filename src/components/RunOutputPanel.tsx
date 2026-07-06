@@ -63,11 +63,15 @@ export function RunOutputPanel({
   language,
   visible,
   onClose,
+  onBeforeRun,
 }: {
   path: string | null;
   language: string;
   visible: boolean;
   onClose: () => void;
+  /// 실행 직전 훅 — 에디터의 dirty 내용을 디스크에 저장. 없으면 편집 후 Run 시
+  /// 저장 안 된 옛 파일이 실행된다 ("아무 줄이나 수정하고 Run" 학습 루프 필수).
+  onBeforeRun?: () => void | Promise<void>;
 }) {
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<RunResult | null>(null);
@@ -86,6 +90,7 @@ export function RunOutputPanel({
     setError(null);
     setResult(null);
     try {
+      await onBeforeRun?.();
       const r = await invoke<RunResult>("run_code", { path, language });
       setResult(r);
     } catch (e) {
