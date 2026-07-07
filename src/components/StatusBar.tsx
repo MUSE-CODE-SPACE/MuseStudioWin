@@ -4,9 +4,10 @@ type Props = {
   tab: Tab | null;
   runnable?: boolean;
   onRun?: () => void;
+  onToggleTerminal?: () => void;
 };
 
-export function StatusBar({ tab, runnable, onRun }: Props) {
+export function StatusBar({ tab, runnable, onRun, onToggleTerminal }: Props) {
   return (
     <footer className="bg-panel border-t border-border text-xs text-muted h-6 flex items-center px-3 gap-4 shrink-0">
       <span>
@@ -37,8 +38,17 @@ export function StatusBar({ tab, runnable, onRun }: Props) {
           ▶ Run
         </button>
       )}
+      {onToggleTerminal && (
+        <button
+          onClick={onToggleTerminal}
+          className="px-2 py-0.5 rounded bg-zinc-700 hover:bg-zinc-600 text-white text-[10px] font-medium"
+          title="Terminal (Ctrl/⌘+`)"
+        >
+          ⌨ Terminal
+        </button>
+      )}
       <span className="ml-auto">UTF-8</span>
-      <span>MuseStudio v0.3</span>
+      <span>MuseStudio v0.4.0</span>
     </footer>
   );
 }

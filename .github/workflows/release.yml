@@ -30,9 +30,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # pnpm 11 — pnpm-workspace.yaml 의 allowBuilds 필드는 pnpm 9 가 파싱하지
+      # 못해 "packages field missing or empty" 로 install 이 실패한다.
       - uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 11
 
       - uses: actions/setup-node@v4
         with:
@@ -71,6 +73,40 @@ jobs:
           tagName: ${{ steps.tag.outputs.tag }}
           releaseName: "MuseStudio ${{ steps.tag.outputs.tag }}"
           releaseBody: |
+            ## What's new in v0.4.0
+
+            ### 한국어 — 변경 사항
+            - **내장 터미널 (신규)**: 앱 하단에 실제 PTY 기반 터미널 (xterm.js) 을 내장 — `pip install`, `python3` REPL, Ctrl+C, 방향키 히스토리, 창 크기 연동, 한글 입출력이 모두 동작합니다. 로그인 셸 환경 (PATH · API 키) 을 그대로 사용하므로 터미널에서 설치한 패키지를 Run 이 바로 인식합니다. 단축키 `Ctrl/⌘+\``.
+            - **모듈 원클릭 설치 (신규)**: 실행 결과가 ModuleNotFoundError 면 Output 패널이 "⌨ 터미널에서 설치" 버튼을 제안 — 클릭 한 번에 내장 터미널에서 `python3 -m pip install <모듈>` 이 실행되어 설치 과정을 눈으로 보며 배울 수 있습니다.
+            - **딥링크 스킴 등록 수정**: `musestudio://` · `museedit://` 스킴이 OS에 정확히 등록되어 LLM Master(LLMStudy) → MuseStudio 연동이 end-to-end 로 동작합니다.
+            - **챕터 코드 번들 가져오기**: `musestudio://import` 로 레슨 코드 zip 을 내려받아 `Documents/MuseStudio/` 에 풀고 바로 엽니다 (zip 안 한글 파일명 깨짐 수정 포함).
+            - **실행 중 UI 프리즈 해소**: 코드 실행이 백그라운드 스레드로 이동 — 수십 초짜리 LLM API 레슨 코드를 돌려도 앱이 얼지 않습니다.
+            - **환경변수 인식**: Finder/딥링크로 실행된 앱도 로그인 셸의 `PATH` · `ANTHROPIC_API_KEY` 등 환경변수를 그대로 인식합니다 (VS Code 와 같은 전략).
+            - **Python 실행 개선 (신규)**:
+              - **■ Stop 버튼** — 무한 루프·장시간 실행 스크립트를 즉시 중단.
+              - Python 미설치 시 설치 안내가 포함된 명확한 에러 메시지.
+              - `input()` 은 즉시 EOFError 로 끝나며(행 걸림 없음) Output 패널이 원인과 대처법을 안내.
+              - 미설치 모듈 import 시 stderr 전체 + `pip install` 힌트 표시.
+              - Windows 는 `python` 명령 사용 (기존 `python3` 는 Store 스텁 문제), `PYTHONIOENCODING=utf-8` 로 한글 출력 깨짐 방지.
+              - 한글 파일명 · 경로 · 출력 정상 동작 검증.
+
+            ### English — Changes
+            - **Built-in terminal (new)**: a real PTY-backed terminal (xterm.js) in the bottom panel — `pip install`, the `python3` REPL, Ctrl+C, arrow-key history, resize, and Korean I/O all work. It shares the login-shell environment (PATH, API keys), so packages installed in the terminal are immediately visible to Run. Shortcut: `Ctrl/⌘+\``.
+            - **One-click module install (new)**: when a run fails with ModuleNotFoundError, the Output panel offers an "Install in terminal" button that runs `python3 -m pip install <module>` in the built-in terminal, so learners see the process.
+            - **Deep-link scheme registration fixed**: `musestudio://` and `museedit://` are correctly registered with the OS, so the LLM Master (LLMStudy) → MuseStudio flow works end-to-end.
+            - **Chapter code bundle import**: `musestudio://import` downloads a lesson zip into `Documents/MuseStudio/` and opens it (includes a fix for Korean filenames inside zips).
+            - **UI freeze during runs fixed**: code execution moved to a background thread — long LLM API lesson scripts no longer freeze the app.
+            - **Environment variables recognized**: apps launched from Finder/deep links inherit the login shell's `PATH`, `ANTHROPIC_API_KEY`, etc. (same strategy as VS Code).
+            - **Python execution improvements (new)**:
+              - **Stop button** — kill infinite-loop / long-running scripts instantly.
+              - Clear, actionable error message when Python is not installed.
+              - `input()` ends immediately with EOFError (no hang) and the Output panel explains why and what to do.
+              - Missing-module imports show full stderr plus a `pip install` hint.
+              - Windows uses `python` (the old `python3` hit the Store stub); `PYTHONIOENCODING=utf-8` prevents garbled Korean output.
+              - Korean filenames, paths, and output verified.
+
+            ---
+
             ## English
 
             ### What is this tool?

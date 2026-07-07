@@ -7,6 +7,7 @@ import { EditorPane } from "./components/EditorPane";
 import { StatusBar } from "./components/StatusBar";
 import { TabBar } from "./components/TabBar";
 import { RunOutputPanel } from "./components/RunOutputPanel";
+import { TerminalPanel } from "./components/TerminalPanel";
 import { LearningModePanel } from "./components/LearningModePanel";
 import { parseMuseEditUrl, parseMuseStudioImportUrl, type MuseStudioImport } from "./lib/museeditUrl";
 import type { Tab } from "./types";
@@ -57,6 +58,22 @@ export default function App() {
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [runPanelOpen, setRunPanelOpen] = useState(false);
+  const [termOpen, setTermOpen] = useState(false);
+  // 터미널은 한 번 열리면 unmount 하지 않고 숨김 — 셸 세션 (히스토리, 가상환경
+  // activate 등) 을 유지한다.
+  const [termEverOpened, setTermEverOpened] = useState(false);
+  const [injectedCmd, setInjectedCmd] = useState<{ cmd: string; nonce: number } | null>(null);
+
+  function openTerminal() {
+    setTermEverOpened(true);
+    setTermOpen(true);
+  }
+
+  /// Output 패널의 "터미널에서 설치" — 터미널을 열고 명령을 셸 입력으로 주입.
+  function runInTerminal(cmd: string) {
+    openTerminal();
+    setInjectedCmd((prev) => ({ cmd, nonce: (prev?.nonce ?? 0) + 1 }));
+  }
 
   const activeTab = tabs.find((t) => t.id === activeId) ?? null;
 
@@ -268,12 +285,17 @@ export default function App() {
         if (activeTab && RUNNABLE_LANGS.has(activeTab.language)) {
           setRunPanelOpen(true);
         }
+      } else if (e.key === "`") {
+        // Ctrl/⌘+` — 내장 터미널 토글 (VS Code 와 같은 단축키).
+        e.preventDefault();
+        if (termOpen) setTermOpen(false);
+        else openTerminal();
       }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, tabs, activeId]);
+  }, [activeTab, tabs, activeId, termOpen]);
 
   // museedit:// deeplink — runtime 에 들어오는 URL 도 받고, cold-start 시점에
   // 함께 넘어온 URL 도 처리 (Windows installer 가 OS 가 보낸 첫 URL).
@@ -326,7 +348,16 @@ export default function App() {
                 visible={runPanelOpen}
                 onClose={() => setRunPanelOpen(false)}
                 onBeforeRun={saveActive}
+                onRunInTerminal={runInTerminal}
               />
+              {termEverOpened && (
+                <TerminalPanel
+                  visible={termOpen}
+                  cwd={rootDir}
+                  onClose={() => setTermOpen(false)}
+                  injected={injectedCmd}
+                />
+              )}
             </div>
             {/* Learning Mode 사이드 패널 — 현재 탭이 museedit:// 로 들어온 경우에만. */}
             {activeTab?.lesson && <LearningModePanel lesson={activeTab.lesson} />}
@@ -337,6 +368,7 @@ export default function App() {
         tab={activeTab}
         runnable={!!activeTab && RUNNABLE_LANGS.has(activeTab.language)}
         onRun={() => setRunPanelOpen(true)}
+        onToggleTerminal={() => (termOpen ? setTermOpen(false) : openTerminal())}
       />
     </div>
   );

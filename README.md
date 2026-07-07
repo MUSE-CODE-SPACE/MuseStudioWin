@@ -25,21 +25,38 @@ Produces native `.exe` / `.app` / `.deb` / `.AppImage` from a single codebase.
 
 ## What is NOT in v0.1 (vs Mac parity)
 
-See the MuseEdit macOS-native sibling for the full feature list. Deferred:
+See the MuseEdit macOS-native sibling for the full feature list.
+
+Since shipped (v0.2–v0.4):
+- Code execution (`run_code`) with Output panel, Stop button, stderr diagnosis (missing module → one-click pip install)
+- Integrated terminal (xterm.js + real PTY, login-shell env) — `pip install`, `python3` REPL, Ctrl+C, Korean I/O. `Ctrl/⌘+\`` to toggle
+- Learning Mode side panel + `museedit://` / `musestudio://` URL schemes (deep link + chapter bundle import)
+
+Still deferred:
 - Git integration (clone/status/commit/diff/branches)
-- Integrated terminal
-- Code execution (`run_code` Rust command stub exists)
 - Multi-cursor, code folding, minimap (Monaco gives folding/minimap free, multi-cursor exists)
-- Learning Mode side panel + `museedit://` URL scheme
 - Settings UI (font/theme picker)
 - Plugin system
 - Auto-update (Tauri has an updater plugin; not yet wired)
+
+## macOS에서 열기 (Gatekeeper 안내)
+
+릴리스 `.dmg` / `.app` 은 아직 Apple 공증(notarization)·서명이 되어 있지 않아, 처음 실행하면 macOS Gatekeeper 가 "확인되지 않은 개발자" 또는 "손상되었기 때문에 열 수 없습니다" 경고를 띄웁니다. 앱은 정상이며, 아래 방법 중 하나로 열 수 있습니다.
+
+1. **우클릭으로 열기 (권장)**: Finder 에서 `MuseStudio.app` 을 **우클릭(Control+클릭) → 열기 → 열기**. 최초 1회만 하면 이후는 더블클릭으로 실행됩니다.
+2. **quarantine 속성 제거 (터미널)**:
+   ```bash
+   xattr -d com.apple.quarantine /Applications/MuseStudio.app
+   ```
+3. macOS Ventura 이상에서 1번이 막히면 **시스템 설정 → 개인정보 보호 및 보안 → 보안** 하단의 "확인 없이 열기" 를 클릭하세요.
+
+> English: the release build is not yet notarized/signed. On first launch, right-click the app → **Open → Open**, or run `xattr -d com.apple.quarantine /Applications/MuseStudio.app`. This is required only once.
 
 ## Develop on Mac
 
 ```bash
 cd /path/to/MuseStudioWin
-pnpm install
+pnpm install            # pnpm 11+ (pnpm-workspace.yaml 의 allowBuilds 필드는 pnpm 9 가 파싱 못 함)
 pnpm tauri dev          # spawn dev window
 pnpm tauri build        # produce .app (Mac) — outputs in src-tauri/target/release/bundle/
 ```

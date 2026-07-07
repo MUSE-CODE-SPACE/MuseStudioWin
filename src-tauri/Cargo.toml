@@ -1,6 +1,6 @@
 [package]
 name = "musestudio-win"
-version = "0.3.0"
+version = "0.4.0"
 description = "MuseStudio for Windows — Tauri-based code editor"
 authors = ["yoon-k"]
 edition = "2021"
@@ -28,6 +28,12 @@ walkdir = "2"
 # musestudio://import — 챕터 코드 번들 zip 다운로드 + 압축 해제
 ureq = "2"
 zip = { version = "2", default-features = false, features = ["deflate"] }
+# 내장 터미널 — 실제 PTY (Unix: openpty, Windows: ConPTY) 위에 로그인 셸을 띄우고
+# xterm.js (프론트) 와 tauri 이벤트로 바이트 스트림을 주고받는다.
+portable-pty = "0.9"
+# PTY 출력 청크를 이벤트로 보낼 때 UTF-8 멀티바이트가 청크 경계에서 깨지지 않도록
+# raw bytes 를 base64 로 실어 나른다 (xterm.write(Uint8Array) 가 상태 유지 디코딩).
+base64 = "0.22"
 
 # deeplink 가 새 인스턴스를 띄우지 않고 기존 창으로 전달되도록 (Windows/Linux 필수)
 [target.'cfg(not(any(target_os = "android", target_os = "ios")))'.dependencies]
