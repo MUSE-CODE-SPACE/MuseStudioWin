@@ -36,9 +36,11 @@ jobs:
         with:
           version: 11
 
+      # Node 22+ — pnpm 11 은 Node >= 22.13 필요 (setup-node 의 pnpm cache 단계가
+      # pnpm 을 실행하므로 여기서 바로 터진다).
       - uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
           cache: pnpm
 
       - name: Install Rust stable
